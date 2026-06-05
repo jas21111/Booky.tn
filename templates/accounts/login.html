@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+{% block title %}Sign In — Booky.tn{% endblock %}
+
+{% block content %}
+<div class="min-h-[82vh] flex items-center justify-center px-4 py-16">
+  <div class="w-full max-w-md">
+
+    <!-- Logo mark -->
+    <div class="text-center mb-10">
+      <p class="font-serif text-5xl font-normal italic text-primary" style="letter-spacing:0.02em;">Booky.tn</p>
+      <p class="text-ink-muted text-xs mt-2 uppercase" style="letter-spacing:0.28em;">Welcome back</p>
+      <div class="flex justify-center mt-3">
+        <span class="block w-8 h-px" style="background:linear-gradient(to right,transparent,#4D47A8,transparent);"></span>
+      </div>
+    </div>
+
+    <!-- Card -->
+    <div class="bg-white border border-surface-border rounded-lg p-8 fade-in"
+         style="box-shadow:0 4px 40px rgba(77,71,168,0.09);">
+
+      <h1 class="font-serif text-2xl font-medium text-ink mb-1">Sign in</h1>
+      <p class="text-ink-muted text-sm mb-7">Enter your credentials to access the library.</p>
+
+      <!-- Error banner -->
+      {% if error %}
+      <div class="flex items-center gap-3 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded mb-6">
+        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        {{ error }}
+      </div>
+      {% endif %}
+
+      <form method="post" class="space-y-5">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ next }}">
+
+        <!-- Username -->
+        <div>
+          <label for="id_username"
+                 class="block text-xs font-medium uppercase text-ink-soft mb-2"
+                 style="letter-spacing:0.12em;">Username</label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-ink-muted">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+              </svg>
+            </span>
+            <input id="id_username" type="text" name="username"
+                   autocomplete="username" required autofocus
+                   class="w-full border border-surface-border rounded pl-10 pr-4 py-3 text-sm bg-surface text-ink placeholder-ink-muted transition-colors"
+                   placeholder="Your username">
+          </div>
+        </div>
+
+        <!-- Password -->
+        <div>
+          <label for="id_password"
+                 class="block text-xs font-medium uppercase text-ink-soft mb-2"
+                 style="letter-spacing:0.12em;">Password</label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-ink-muted">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                      d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+              </svg>
+            </span>
+            <input id="id_password" type="password" name="password"
+                   autocomplete="current-password" required
+                   class="w-full border border-surface-border rounded pl-10 pr-4 py-3 text-sm bg-surface text-ink placeholder-ink-muted transition-colors"
+                   placeholder="Your password">
+          </div>
+        </div>
+
+        <!-- Submit -->
+        <button type="submit"
+                class="w-full bg-primary hover:bg-primary-dark text-white text-xs font-semibold uppercase py-3 rounded transition-colors mt-2"
+                style="letter-spacing:0.16em;">
+          Sign In →
+        </button>
+      </form>
+
+      <hr class="divider-line my-6">
+
+      <p class="text-center text-sm text-ink-muted">
+        Don't have an account?
+        <a href="{% url 'accounts:signup' %}"
+           class="text-primary hover:text-primary-dark font-medium transition-colors ml-1">
+          Create one
+        </a>
+      </p>
+    </div>
+
+    <!-- Decorative hint -->
+    <p class="text-center text-xs text-ink-muted mt-6" style="letter-spacing:0.08em;">
+      Booky.tn · Intelligent Library System
+    </p>
+  </div>
+</div>
+{% endblock %}

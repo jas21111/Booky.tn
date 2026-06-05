@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}Booky.tn — Intelligent Library{% endblock %}</title>
+
+  <!-- Playfair Display (headings) + Inter (body) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: { DEFAULT: '#4D47A8', dark: '#3A3581', light: '#7B76CC' },
+            accent:  { DEFAULT: '#8A7FC2', dark: '#6A5FA8', light: '#B5AEDD' },
+            surface: { DEFAULT: '#FAFAFA', card: '#F3F2F8', border: '#E0DFF0' },
+            ink:     { DEFAULT: '#1A1825', soft: '#4A4660', muted: '#8C89A0' },
+          },
+          fontFamily: {
+            serif: ['"Playfair Display"', 'Georgia', 'serif'],
+            sans:  ['Inter', 'system-ui', 'sans-serif'],
+          },
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    .book-card { transition: transform 0.35s ease, box-shadow 0.35s ease; }
+    .book-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 16px 48px rgba(77, 71, 168, 0.13), 0 4px 12px rgba(26, 24, 37, 0.07);
+    }
+
+    .chat-bubble-user      { border-radius: 16px 16px 4px 16px; }
+    .chat-bubble-assistant { border-radius: 4px 16px 16px 16px; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0);   }
+    }
+    .fade-in { animation: fadeIn 0.4s ease forwards; }
+
+    .typing-dot { animation: blink 1.4s infinite; }
+    .typing-dot:nth-child(2) { animation-delay: 0.25s; }
+    .typing-dot:nth-child(3) { animation-delay: 0.50s; }
+    @keyframes blink { 0%,80%,100%{ opacity:0; } 40%{ opacity:1; } }
+
+    ::-webkit-scrollbar       { width: 4px; }
+    ::-webkit-scrollbar-track { background: #FAFAFA; }
+    ::-webkit-scrollbar-thumb { background: rgba(138, 127, 194, 0.4); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(138, 127, 194, 0.75); }
+
+    .divider-line {
+      border: none;
+      height: 1px;
+      background: linear-gradient(to right, transparent, rgba(77,71,168,0.35), transparent);
+    }
+
+    input[type="radio"],
+    input[type="checkbox"] { accent-color: #4D47A8; }
+
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: #8A7FC2 !important;
+      box-shadow: 0 0 0 3px rgba(138, 127, 194, 0.2) !important;
+    }
+  </style>
+  {% block extra_head %}{% endblock %}
+</head>
+<body class="bg-surface min-h-screen flex flex-col text-ink">
+
+  <!-- Navbar -->
+  <nav class="bg-white border-b border-surface-border sticky top-0 z-50"
+       style="box-shadow: 0 1px 16px rgba(26,24,37,0.06);">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center h-16">
+
+        <!-- Logo -->
+        <a href="{% url 'library:home' %}" class="flex items-center gap-2">
+          <span class="font-serif text-2xl font-normal italic text-primary"
+                style="letter-spacing:0.01em;">Booky.tn</span>
+          <span class="text-accent text-sm">✦</span>
+        </a>
+
+        <!-- Desktop nav -->
+        <div class="hidden md:flex items-center gap-8">
+          <a href="{% url 'library:home' %}"
+             class="text-ink-soft hover:text-primary text-xs uppercase tracking-widest transition-colors font-medium"
+             style="letter-spacing:0.12em;">Home</a>
+          <a href="{% url 'library:book_list' %}"
+             class="text-ink-soft hover:text-primary text-xs uppercase tracking-widest transition-colors font-medium"
+             style="letter-spacing:0.12em;">Books</a>
+          <a href="{% url 'library:category_list' %}"
+             class="text-ink-soft hover:text-primary text-xs uppercase tracking-widest transition-colors font-medium"
+             style="letter-spacing:0.12em;">Categories</a>
+          <a href="{% url 'chat:chat' %}"
+             class="flex items-center gap-2 border border-primary text-primary px-5 py-2 text-xs uppercase tracking-widest font-medium hover:bg-primary hover:text-white transition-all"
+             style="letter-spacing:0.11em; border-radius:4px;">
+            Ask Booky AI
+          </a>
+
+          <!-- Auth -->
+          {% if user.is_authenticated %}
+          <div class="flex items-center gap-3 border-l border-surface-border pl-6">
+            <span class="text-xs text-ink-muted" style="letter-spacing:0.06em;">
+              <span class="text-ink-soft font-medium">{{ user.username }}</span>
+            </span>
+            <form method="post" action="{% url 'accounts:logout' %}">
+              {% csrf_token %}
+              <button type="submit"
+                      class="text-xs uppercase tracking-widest text-ink-muted hover:text-red-500 transition-colors font-medium"
+                      style="letter-spacing:0.12em;">
+                Sign out
+              </button>
+            </form>
+          </div>
+          {% else %}
+          <div class="flex items-center gap-3 border-l border-surface-border pl-6">
+            <a href="{% url 'accounts:login' %}"
+               class="text-xs uppercase tracking-widest text-ink-soft hover:text-primary transition-colors font-medium"
+               style="letter-spacing:0.12em;">Sign In</a>
+            <a href="{% url 'accounts:signup' %}"
+               class="bg-primary hover:bg-primary-dark text-white text-xs uppercase tracking-widest font-medium px-4 py-2 transition-colors"
+               style="letter-spacing:0.11em; border-radius:4px;">
+              Sign Up
+            </a>
+          </div>
+          {% endif %}
+        </div>
+
+        <!-- Mobile menu button -->
+        <button id="mobileMenuBtn"
+                class="md:hidden p-2 text-ink-soft hover:text-primary transition-colors">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                  d="M4 6h16M4 12h16M4 18h16"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile menu -->
+    <div id="mobileMenu" class="hidden md:hidden border-t border-surface-border bg-white">
+      <div class="px-6 py-5 flex flex-col gap-4">
+        <a href="{% url 'library:home' %}"
+           class="text-ink-soft text-xs uppercase tracking-widest font-medium"
+           style="letter-spacing:0.12em;">Home</a>
+        <a href="{% url 'library:book_list' %}"
+           class="text-ink-soft text-xs uppercase tracking-widest font-medium"
+           style="letter-spacing:0.12em;">Books</a>
+        <a href="{% url 'library:category_list' %}"
+           class="text-ink-soft text-xs uppercase tracking-widest font-medium"
+           style="letter-spacing:0.12em;">Categories</a>
+        <a href="{% url 'chat:chat' %}"
+           class="border border-primary text-primary px-4 py-2 text-xs uppercase tracking-widest text-center font-medium"
+           style="letter-spacing:0.11em; border-radius:4px;">Ask Booky AI</a>
+        <hr class="divider-line">
+        {% if user.is_authenticated %}
+        <span class="text-xs text-ink-muted">Signed in as <strong>{{ user.username }}</strong></span>
+        <form method="post" action="{% url 'accounts:logout' %}">
+          {% csrf_token %}
+          <button type="submit"
+                  class="text-xs uppercase tracking-widest text-red-500 font-medium"
+                  style="letter-spacing:0.12em;">Sign Out</button>
+        </form>
+        {% else %}
+        <a href="{% url 'accounts:login' %}"
+           class="text-xs uppercase tracking-widest text-ink-soft font-medium"
+           style="letter-spacing:0.12em;">Sign In</a>
+        <a href="{% url 'accounts:signup' %}"
+           class="bg-primary text-white px-4 py-2 text-xs uppercase tracking-widest text-center font-medium"
+           style="letter-spacing:0.11em; border-radius:4px;">Sign Up</a>
+        {% endif %}
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main content -->
+  <main class="flex-1">
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- Footer -->
+  <footer class="border-t border-surface-border bg-white mt-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+
+        <!-- Brand -->
+        <div class="flex items-center gap-2">
+          <span class="font-serif text-xl italic text-primary" style="letter-spacing:0.02em;">Booky.tn</span>
+          <span class="text-accent text-xs">✦</span>
+        </div>
+
+        <!-- Links -->
+        <div class="flex items-center gap-6">
+          <a href="{% url 'library:home' %}"
+             class="text-xs uppercase tracking-widest text-ink-muted hover:text-primary transition-colors font-medium"
+             style="letter-spacing:0.12em;">Home</a>
+          <a href="{% url 'library:book_list' %}"
+             class="text-xs uppercase tracking-widest text-ink-muted hover:text-primary transition-colors font-medium"
+             style="letter-spacing:0.12em;">Books</a>
+          <a href="{% url 'library:category_list' %}"
+             class="text-xs uppercase tracking-widest text-ink-muted hover:text-primary transition-colors font-medium"
+             style="letter-spacing:0.12em;">Categories</a>
+          <a href="{% url 'chat:chat' %}"
+             class="text-xs uppercase tracking-widest text-ink-muted hover:text-primary transition-colors font-medium"
+             style="letter-spacing:0.12em;">Ask Booky AI</a>
+        </div>
+
+        <!-- Tagline -->
+        <p class="text-xs text-ink-muted uppercase" style="letter-spacing:0.16em;">
+          Discover · Read · Explore
+        </p>
+      </div>
+
+      <!-- Bottom line -->
+      <div class="mt-8 pt-6 border-t border-surface-border text-center">
+        <p class="text-xs text-ink-muted" style="letter-spacing:0.08em;">
+          © 2026 Booky.tn · Intelligent Library System
+        </p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    document.getElementById('mobileMenuBtn').addEventListener('click', () => {
+      document.getElementById('mobileMenu').classList.toggle('hidden');
+    });
+  </script>
+  {% block extra_scripts %}{% endblock %}
+</body>
+</html>

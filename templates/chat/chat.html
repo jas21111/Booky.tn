@@ -1,0 +1,299 @@
+{% extends 'base.html' %}
+{% block title %}Chat with Booky.tn AI{% endblock %}
+
+{% block extra_head %}
+<style>
+  #chatMessages { scroll-behavior: smooth; }
+  .message-content p { margin-bottom: 0.5rem; }
+  .message-content p:last-child { margin-bottom: 0; }
+  .message-content ul { list-style: disc; padding-left: 1.2rem; margin-bottom: 0.5rem; }
+  .message-content ol { list-style: decimal; padding-left: 1.2rem; margin-bottom: 0.5rem; }
+  .message-content strong { font-weight: 600; }
+  .message-content em { font-style: italic; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto px-4 py-6 h-[calc(100vh-120px)] flex flex-col">
+
+  <!-- Chat Header -->
+  <div class="bg-white border border-surface-border p-5 mb-3"
+       style="border-radius:10px; box-shadow:0 2px 12px rgba(77,71,168,0.07);">
+    <div class="flex items-center justify-between mb-4">
+      <div class="flex items-center gap-3.5">
+        <!-- AI avatar -->
+        <div class="w-10 h-10 rounded-full flex items-center justify-center shrink-0 font-serif text-base font-medium"
+             style="background:linear-gradient(135deg,#4D47A8,#3A3581); color:#F0EFF8;">✦</div>
+        <div>
+          <h1 class="font-serif text-lg font-medium text-ink">Booky.tn AI Assistant</h1>
+          <div class="flex items-center gap-1.5">
+            <div id="statusDot" class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>
+            <span id="statusLabel" class="text-xs text-ink-muted font-light">
+              {% if ollama_up %}Ollama — ready{% else %}Ollama — offline{% endif %}
+            </span>
+          </div>
+        </div>
+      </div>
+      <button id="clearBtn"
+              class="text-xs uppercase tracking-widest text-ink-muted hover:text-primary border border-surface-border hover:border-primary px-3 py-2 transition-colors font-medium"
+              style="letter-spacing:0.11em; border-radius:4px;">
+        Clear
+      </button>
+    </div>
+
+    <!-- Model picker -->
+    <div class="flex items-center gap-3 flex-wrap">
+      <span class="text-xs uppercase tracking-widest text-ink-muted shrink-0 font-medium"
+            style="letter-spacing:0.11em;">Model:</span>
+      {% if ollama_models %}
+      <select id="ollamaModelSelect"
+              class="text-xs border border-surface-border px-3 py-2 text-ink-soft bg-surface outline-none font-light"
+              style="border-radius:4px;">
+        {% for m in ollama_models %}
+        <option value="{{ m }}" {% if m == ollama_default %}selected{% endif %}>{{ m }}</option>
+        {% endfor %}
+      </select>
+      {% else %}
+      <span class="text-xs text-accent italic font-light">No models found — is Ollama running?</span>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Messages Area -->
+  <div id="chatMessages"
+       class="flex-1 overflow-y-auto bg-white border border-surface-border p-5 mb-3 space-y-5"
+       style="border-radius:10px; box-shadow:0 2px 12px rgba(77,71,168,0.06);">
+
+    {% if not messages %}
+    <div class="fade-in">
+      <div class="flex items-start gap-3">
+        <div class="w-8 h-8 rounded-full flex items-center justify-center shrink-0 mt-1 font-serif text-xs font-medium"
+             style="background:linear-gradient(135deg,#4D47A8,#3A3581); color:#F0EFF8;">✦</div>
+        <div class="chat-bubble-assistant border border-surface-border px-5 py-4 max-w-[85%] text-sm leading-relaxed font-light"
+             style="background:#F3F2F8; color:#1A1825;">
+          <p>Bonjour! I'm <strong>Booky.tn</strong>, your intelligent library assistant.</p>
+          <p class="mt-2">I can help you:</p>
+          <ul class="mt-2 space-y-1">
+            <li>📖 Find books that match your interests</li>
+            <li>🔍 Search our catalog by genre, author, or topic</li>
+            <li>⭐ Get personalized reading recommendations</li>
+            <li>💡 Tell you about specific books and authors</li>
+          </ul>
+          <p class="mt-3 italic text-ink-soft">Select a model above and begin your literary journey.</p>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    {% for message in messages %}
+    <div class="fade-in">
+      {% if message.role == 'user' %}
+      <div class="flex justify-end">
+        <div class="chat-bubble-user px-5 py-3 max-w-[80%] text-sm leading-relaxed font-light"
+             style="background:#4D47A8; color:#fff;">
+          {{ message.content }}
+        </div>
+      </div>
+      {% else %}
+      <div class="flex items-start gap-3">
+        <div class="w-8 h-8 rounded-full flex items-center justify-center shrink-0 mt-1 font-serif text-xs font-medium"
+             style="background:linear-gradient(135deg,#4D47A8,#3A3581); color:#F0EFF8;">✦</div>
+        <div class="chat-bubble-assistant border border-surface-border px-5 py-4 max-w-[85%] text-sm leading-relaxed message-content font-light"
+             style="background:#F3F2F8; color:#1A1825;">
+          {{ message.content|linebreaks }}
+        </div>
+      </div>
+      {% endif %}
+    </div>
+    {% endfor %}
+
+    <!-- Typing indicator -->
+    <div id="typingIndicator" class="hidden">
+      <div class="flex items-start gap-3">
+        <div class="w-8 h-8 rounded-full flex items-center justify-center shrink-0 font-serif text-xs font-medium"
+             style="background:linear-gradient(135deg,#4D47A8,#3A3581); color:#F0EFF8;">✦</div>
+        <div class="chat-bubble-assistant border border-surface-border px-5 py-4"
+             style="background:#F3F2F8;">
+          <div class="flex gap-1.5">
+            <div class="typing-dot w-1.5 h-1.5 rounded-full" style="background:#8A7FC2;"></div>
+            <div class="typing-dot w-1.5 h-1.5 rounded-full" style="background:#8A7FC2;"></div>
+            <div class="typing-dot w-1.5 h-1.5 rounded-full" style="background:#8A7FC2;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Suggestion chips -->
+  <div id="suggestions" class="flex flex-wrap gap-2 mb-3 {% if messages %}hidden{% endif %}">
+    <button class="suggestion-chip text-xs bg-white border border-surface-border text-ink-soft px-4 py-2 hover:border-primary hover:text-primary transition-colors italic font-light"
+            style="border-radius:5px;">Recommend a classic novel</button>
+    <button class="suggestion-chip text-xs bg-white border border-surface-border text-ink-soft px-4 py-2 hover:border-primary hover:text-primary transition-colors italic font-light"
+            style="border-radius:5px;">Best science fiction books</button>
+    <button class="suggestion-chip text-xs bg-white border border-surface-border text-ink-soft px-4 py-2 hover:border-primary hover:text-primary transition-colors italic font-light"
+            style="border-radius:5px;">What's available now?</button>
+    <button class="suggestion-chip text-xs bg-white border border-surface-border text-ink-soft px-4 py-2 hover:border-primary hover:text-primary transition-colors italic font-light"
+            style="border-radius:5px;">Books about philosophy</button>
+  </div>
+
+  <!-- Input Area -->
+  <form id="chatForm"
+        class="flex gap-0 overflow-hidden"
+        style="border:1px solid #E0DFF0; border-radius:8px; background:#fff;">
+    {% csrf_token %}
+    <input type="text" id="messageInput"
+           placeholder="Ask anything about books…"
+           class="flex-1 px-5 py-4 text-sm text-ink placeholder-ink-muted outline-none bg-transparent font-light"
+           autocomplete="off"/>
+    <button type="submit" id="sendBtn"
+            class="px-5 py-4 hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
+            style="background:#4D47A8; border-radius:0 7px 7px 0; color:#fff;">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24"
+           fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="22" y1="2" x2="11" y2="13"></line>
+        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+      </svg>
+    </button>
+  </form>
+
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  const chatMessages = document.getElementById('chatMessages');
+  const chatForm     = document.getElementById('chatForm');
+  const messageInput = document.getElementById('messageInput');
+  const sendBtn      = document.getElementById('sendBtn');
+  const typingInd    = document.getElementById('typingIndicator');
+  const suggestions  = document.getElementById('suggestions');
+  const statusDot    = document.getElementById('statusDot');
+  const statusLabel  = document.getElementById('statusLabel');
+  const modelSelect  = document.getElementById('ollamaModelSelect');
+
+  function scrollToBottom() { chatMessages.scrollTop = chatMessages.scrollHeight; }
+
+  function escapeHtml(t) {
+    return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function formatMarkdown(text) {
+    return text
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.*?)\*/g,   '<em>$1</em>')
+      .replace(/\n\n/g, '</p><p>')
+      .replace(/\n/g,   '<br>')
+      .replace(/^/, '<p>').replace(/$/, '</p>');
+  }
+
+  function addMessage(role, content) {
+    const div = document.createElement('div');
+    div.className = 'fade-in';
+    if (role === 'user') {
+      div.innerHTML = `<div class="flex justify-end">
+        <div class="chat-bubble-user px-5 py-3 max-w-[80%] text-sm leading-relaxed font-light"
+             style="background:#4D47A8;color:#fff;">${escapeHtml(content)}</div>
+      </div>`;
+    } else {
+      div.innerHTML = `<div class="flex items-start gap-3">
+        <div class="w-8 h-8 rounded-full flex items-center justify-center shrink-0 mt-1 font-serif text-xs font-medium"
+             style="background:linear-gradient(135deg,#4D47A8,#3A3581);color:#F0EFF8;">✦</div>
+        <div id="streamingMsg" class="chat-bubble-assistant border border-surface-border px-5 py-4 max-w-[85%] text-sm leading-relaxed message-content font-light"
+             style="background:#F3F2F8;color:#1A1825;border-color:#E0DFF0;">${content}</div>
+      </div>`;
+    }
+    chatMessages.insertBefore(div, typingInd);
+    scrollToBottom();
+  }
+
+  async function sendMessage(text) {
+    if (!text.trim()) return;
+    suggestions.classList.add('hidden');
+    addMessage('user', text);
+    messageInput.value = '';
+    sendBtn.disabled = true;
+    messageInput.disabled = true;
+    typingInd.classList.remove('hidden');
+    scrollToBottom();
+
+    addMessage('assistant', '');
+    const msgEl = document.getElementById('streamingMsg');
+    typingInd.classList.add('hidden');
+
+    const model = modelSelect ? modelSelect.value : '';
+    let fullText = '';
+
+    statusDot.classList.replace('bg-green-500', 'bg-amber-400');
+    statusLabel.textContent = `Asking ${model}…`;
+
+    try {
+      const resp = await fetch('/chat/send/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+        },
+        body: JSON.stringify({ message: text, model }),
+      });
+
+      const reader = resp.body.getReader();
+      const dec    = new TextDecoder();
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        const lines = dec.decode(value).split('\n');
+        for (const line of lines) {
+          if (!line.startsWith('data: ')) continue;
+          try {
+            const d = JSON.parse(line.slice(6));
+            if (d.text) {
+              fullText += d.text;
+              if (msgEl) {
+                msgEl.innerHTML = formatMarkdown(fullText);
+                msgEl.removeAttribute('id');
+              }
+              scrollToBottom();
+            }
+            if (d.error && msgEl) {
+              msgEl.innerHTML = `<span style="color:#A03030;">⚠️ ${escapeHtml(d.error)}</span>`;
+              msgEl.removeAttribute('id');
+            }
+          } catch (_) {}
+        }
+      }
+    } catch (err) {
+      if (msgEl) {
+        msgEl.innerHTML = '<span style="color:#A03030;">⚠️ Connection error. Please try again.</span>';
+        msgEl.removeAttribute('id');
+      }
+    }
+
+    sendBtn.disabled = false;
+    messageInput.disabled = false;
+    messageInput.focus();
+    statusDot.classList.replace('bg-amber-400', 'bg-green-500');
+    statusLabel.textContent = `Ollama — ${model}`;
+    scrollToBottom();
+  }
+
+  chatForm.addEventListener('submit', e => { e.preventDefault(); sendMessage(messageInput.value); });
+  messageInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(messageInput.value); }
+  });
+  document.querySelectorAll('.suggestion-chip').forEach(c =>
+    c.addEventListener('click', () => sendMessage(c.textContent.trim()))
+  );
+  document.getElementById('clearBtn').addEventListener('click', async () => {
+    if (!confirm('Clear conversation history?')) return;
+    await fetch('/chat/clear/', {
+      method: 'POST',
+      headers: { 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value },
+    });
+    location.reload();
+  });
+
+  scrollToBottom();
+  messageInput.focus();
+</script>
+{% endblock %}

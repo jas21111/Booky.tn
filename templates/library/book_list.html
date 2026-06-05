@@ -1,0 +1,161 @@
+{% extends 'base.html' %}
+{% block title %}Books — Booky.tn{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+  <div class="flex flex-col lg:flex-row gap-10">
+
+    <!-- Sidebar Filters -->
+    <aside class="w-full lg:w-60 shrink-0">
+      <div class="bg-white border border-surface-border p-6 sticky top-24"
+           style="border-radius:8px; box-shadow:0 2px 12px rgba(77,71,168,0.06);">
+        <h2 class="font-serif text-xl font-normal text-ink mb-4">Filters</h2>
+        <hr class="divider-line mb-5">
+
+        <form method="get" id="filterForm">
+          {% if query %}
+          <input type="hidden" name="q" value="{{ query }}" />
+          {% endif %}
+
+          <div class="mb-6">
+            <label class="text-xs uppercase tracking-widest text-ink-muted mb-3 block font-medium"
+                   style="letter-spacing:0.12em;">Genre</label>
+            <div class="space-y-2.5">
+              <label class="flex items-center gap-2.5 cursor-pointer group">
+                <input type="radio" name="category" value=""
+                       {% if not selected_category %}checked{% endif %}
+                       onchange="this.form.submit()"/>
+                <span class="text-sm text-ink-soft group-hover:text-primary transition-colors font-light">All Genres</span>
+              </label>
+              {% for cat in categories %}
+              <label class="flex items-center gap-2.5 cursor-pointer group">
+                <input type="radio" name="category" value="{{ cat.id }}"
+                       {% if selected_category == cat.id|stringformat:"s" %}checked{% endif %}
+                       onchange="this.form.submit()"/>
+                <span class="text-sm text-ink-soft group-hover:text-primary transition-colors font-light">{{ cat.icon }} {{ cat.name }}</span>
+              </label>
+              {% endfor %}
+            </div>
+          </div>
+
+          <div class="border-t border-surface-border pt-5">
+            <label class="flex items-center gap-2.5 cursor-pointer group">
+              <input type="checkbox" name="available" value="1"
+                     {% if available_only %}checked{% endif %}
+                     onchange="this.form.submit()"/>
+              <span class="text-sm font-medium text-ink-soft group-hover:text-primary transition-colors">Available only</span>
+            </label>
+          </div>
+        </form>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="flex-1">
+
+      <!-- Search Bar -->
+      <form method="get"
+            class="flex gap-0 mb-8 overflow-hidden"
+            style="border:1px solid #E0DFF0; border-radius:6px; background:#fff;">
+        {% if selected_category %}
+        <input type="hidden" name="category" value="{{ selected_category }}" />
+        {% endif %}
+        {% if available_only %}
+        <input type="hidden" name="available" value="1" />
+        {% endif %}
+        <input type="text" name="q" value="{{ query }}" placeholder="Search books, authors…"
+               class="flex-1 px-5 py-3 text-sm text-ink outline-none bg-transparent placeholder-ink-muted font-light"/>
+        <button type="submit"
+                class="px-7 py-3 text-xs uppercase font-semibold tracking-widest shrink-0 hover:opacity-90 transition-opacity"
+                style="background:#4D47A8; color:#fff; border-radius:0 5px 5px 0; letter-spacing:0.12em;">
+          Search
+        </button>
+        {% if query %}
+        <a href="{% url 'library:book_list' %}"
+           class="px-5 py-3 text-xs uppercase tracking-widest text-ink-soft hover:text-primary transition-colors shrink-0 border-l border-surface-border flex items-center font-medium"
+           style="letter-spacing:0.11em;">Clear</a>
+        {% endif %}
+      </form>
+
+      <!-- Results header -->
+      <div class="flex justify-between items-center mb-6">
+        <p class="text-xs text-ink-muted font-medium tracking-wide">
+          <span class="font-semibold text-ink">{{ books|length }}</span>
+          volume{{ books|length|pluralize }} found
+          {% if query %} for "<span class="text-primary italic">{{ query }}</span>"{% endif %}
+        </p>
+      </div>
+
+      <!-- Books Grid -->
+      {% if books %}
+      <div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-5">
+        {% for book in books %}
+        <a href="{% url 'library:book_detail' book.pk %}"
+           class="book-card bg-white border border-surface-border overflow-hidden block"
+           style="border-radius:8px;">
+          <div class="h-44 flex items-center justify-center" style="background:#ECEAF5;">
+            {% if book.cover_image %}
+            <img src="{{ book.cover_image.url }}" alt="{{ book.title }}"
+                 class="w-24 h-36 object-cover rounded shadow-md"/>
+            {% else %}
+            <div class="w-24 h-36 relative rounded shadow-md overflow-hidden"
+                 data-ccolor="{{ book.cover_color }}">
+              <div class="absolute inset-y-0 left-0 w-2"
+                   style="background:linear-gradient(to right,rgba(255,255,255,0.22),transparent);"></div>
+              <div class="absolute bottom-0 left-0 right-0 px-2 pb-2 pt-6"
+                   style="background:linear-gradient(to top,rgba(0,0,0,0.5),transparent);">
+                <span class="text-white text-xs font-medium text-center leading-tight block"
+                      style="font-family:'Playfair Display',serif;">{{ book.title|truncatechars:28 }}</span>
+              </div>
+            </div>
+            {% endif %}
+          </div>
+          <div class="p-4">
+            <h3 class="font-serif font-medium text-ink text-sm leading-tight truncate mb-1">{{ book.title }}</h3>
+            <p class="text-ink-muted text-xs truncate mb-1 italic font-light">{{ book.author.name }}</p>
+            {% if book.categories.all %}
+            <p class="text-xs mb-3 text-accent font-medium">
+              {% for cat in book.categories.all %}{{ cat.icon }} {{ cat.name }}{% if not forloop.last %}, {% endif %}{% endfor %}
+            </p>
+            {% endif %}
+            <div class="flex items-center justify-between">
+              <span class="text-xs text-accent font-medium">★ {{ book.rating }}</span>
+              {% if book.is_available %}
+              <span class="text-xs px-2 py-0.5 font-medium"
+                    style="background:#EEF7EE; color:#2D6A2D; border-radius:4px;">Available</span>
+              {% else %}
+              <span class="text-xs px-2 py-0.5 font-medium"
+                    style="background:#FEF0F0; color:#A03030; border-radius:4px;">Borrowed</span>
+              {% endif %}
+            </div>
+          </div>
+        </a>
+        {% endfor %}
+      </div>
+
+      {% else %}
+      <div class="text-center py-24">
+        <p class="text-5xl mb-6" style="opacity:0.25;">📭</p>
+        <h3 class="font-serif text-3xl font-normal text-ink mb-3">No volumes found</h3>
+        <p class="text-ink-soft text-sm mb-8 italic font-light">
+          Try adjusting your search or browse all categories
+        </p>
+        <a href="{% url 'library:book_list' %}"
+           class="inline-block px-8 py-3 text-xs uppercase font-semibold tracking-widest hover:opacity-90 transition-opacity"
+           style="background:#4D47A8; color:#fff; border-radius:5px; letter-spacing:0.12em;">
+          Browse All Books
+        </a>
+      </div>
+      {% endif %}
+
+    </div>
+  </div>
+</div>
+
+<script>
+  document.querySelectorAll('[data-ccolor]').forEach(function(el) {
+    var c = el.dataset.ccolor;
+    el.style.background = 'linear-gradient(145deg,' + c + ',' + c + 'bb)';
+  });
+</script>
+{% endblock %}

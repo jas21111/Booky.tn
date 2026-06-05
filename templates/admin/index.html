@@ -1,0 +1,255 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block content_title %}<h1>Dashboard</h1>{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs"><a href="{% url 'admin:index' %}">Home</a> › Dashboard</div>
+{% endblock %}
+
+{% block content %}
+<div class="booky-dashboard">
+
+  <!-- Welcome -->
+  <div class="dash-welcome">
+    <div>
+      <p class="dash-welcome-sub">Welcome back,</p>
+      <h2 class="dash-welcome-name">{{ request.user.get_full_name|default:request.user.username }}</h2>
+    </div>
+    <div class="dash-welcome-links">
+      <a href="/" target="_blank" class="dash-btn dash-btn-outline">View Library →</a>
+      <a href="/chat/" target="_blank" class="dash-btn dash-btn-primary">Open AI Chat</a>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="dash-stats">
+
+    <div class="dash-stat">
+      <div class="dash-stat-icon" style="background:#EEF0FB; color:#4D47A8;">
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"/></svg>
+      </div>
+      <div class="dash-stat-body">
+        <div class="dash-stat-value">{{ total_books }}</div>
+        <div class="dash-stat-label">Total Books</div>
+      </div>
+    </div>
+
+    <div class="dash-stat">
+      <div class="dash-stat-icon" style="background:#F0FDF4; color:#16A34A;">
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      </div>
+      <div class="dash-stat-body">
+        <div class="dash-stat-value" style="color:#16A34A;">{{ available_books }}</div>
+        <div class="dash-stat-label">Available</div>
+      </div>
+    </div>
+
+    <div class="dash-stat">
+      <div class="dash-stat-icon" style="background:#FEF2F2; color:#DC2626;">
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9"/></svg>
+      </div>
+      <div class="dash-stat-body">
+        <div class="dash-stat-value" style="color:#DC2626;">{{ borrowed_books }}</div>
+        <div class="dash-stat-label">Borrowed</div>
+      </div>
+    </div>
+
+    <div class="dash-stat">
+      <div class="dash-stat-icon" style="background:#F5F3FF; color:#4D47A8;">
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"/></svg>
+      </div>
+      <div class="dash-stat-body">
+        <div class="dash-stat-value">{{ total_authors }}</div>
+        <div class="dash-stat-label">Authors</div>
+      </div>
+    </div>
+
+    <div class="dash-stat">
+      <div class="dash-stat-icon" style="background:#FFF7ED; color:#D97706;">
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.75V12A2.25 2.25 0 014.5 9.75h15A2.25 2.25 0 0121.75 12v.75m-8.69-6.44l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 6v12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9a2.25 2.25 0 00-2.25-2.25h-5.379a1.5 1.5 0 01-1.06-.44z"/></svg>
+      </div>
+      <div class="dash-stat-body">
+        <div class="dash-stat-value">{{ total_categories }}</div>
+        <div class="dash-stat-label">Categories</div>
+      </div>
+    </div>
+
+    <div class="dash-stat">
+      <div class="dash-stat-icon" style="background:#F0F9FF; color:#0369A1;">
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193-.34.027-.68.052-1.02.072v3.091l-3-3c-1.354 0-2.694-.055-4.02-.163a2.115 2.115 0 01-.825-.242m9.345-8.334a2.126 2.126 0 00-.476-.095 48.64 48.64 0 00-8.048 0c-1.131.094-1.976 1.057-1.976 2.192v4.286c0 .837.46 1.58 1.155 1.951m9.345-8.334V6.637c0-1.621-1.152-3.026-2.76-3.235A48.455 48.455 0 0011.25 3c-2.115 0-4.198.137-6.24.402-1.608.209-2.76 1.614-2.76 3.235v6.226c0 1.621 1.152 3.026 2.76 3.235.577.075 1.157.14 1.74.194V21l4.155-4.155"/></svg>
+      </div>
+      <div class="dash-stat-body">
+        <div class="dash-stat-value">{{ total_conversations }}</div>
+        <div class="dash-stat-label">AI Chats</div>
+      </div>
+    </div>
+
+    <div class="dash-stat">
+      <div class="dash-stat-icon" style="background:#FDF4FF; color:#9333EA;">
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/></svg>
+      </div>
+      <div class="dash-stat-body">
+        <div class="dash-stat-value">{{ total_users }}</div>
+        <div class="dash-stat-label">Users</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Quick Actions -->
+  <div class="dash-section">
+    <h3 class="dash-section-title">Quick Actions</h3>
+    <div class="dash-actions">
+
+      <a href="{% url 'admin:library_book_add' %}" class="dash-action-card">
+        <span class="dash-action-icon" style="background:#EEF0FB; color:#4D47A8;">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+        </span>
+        <span class="dash-action-label">Add Book</span>
+      </a>
+
+      <a href="{% url 'admin:library_author_add' %}" class="dash-action-card">
+        <span class="dash-action-icon" style="background:#F5F3FF; color:#4D47A8;">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487z"/></svg>
+        </span>
+        <span class="dash-action-label">Add Author</span>
+      </a>
+
+      <a href="{% url 'admin:library_category_add' %}" class="dash-action-card">
+        <span class="dash-action-icon" style="background:#FFF7ED; color:#D97706;">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 10.5v6m3-3H9m4.06-7.19l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 6v12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9a2.25 2.25 0 00-2.25-2.25h-5.379a1.5 1.5 0 01-1.06-.44z"/></svg>
+        </span>
+        <span class="dash-action-label">Add Category</span>
+      </a>
+
+      <a href="{% url 'admin:library_book_changelist' %}" class="dash-action-card">
+        <span class="dash-action-icon" style="background:#F0FDF4; color:#16A34A;">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM3.75 12h.007v.008H3.75V12zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm-.375 5.25h.007v.008H3.75v-.008zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"/></svg>
+        </span>
+        <span class="dash-action-label">All Books</span>
+      </a>
+
+      <a href="{% url 'admin:library_author_changelist' %}" class="dash-action-card">
+        <span class="dash-action-icon" style="background:#F0F9FF; color:#0369A1;">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"/></svg>
+        </span>
+        <span class="dash-action-label">All Authors</span>
+      </a>
+
+      <a href="{% url 'admin:auth_user_changelist' %}" class="dash-action-card">
+        <span class="dash-action-icon" style="background:#FDF4FF; color:#9333EA;">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"/></svg>
+        </span>
+        <span class="dash-action-label">Manage Users</span>
+      </a>
+
+      <a href="{% url 'admin:auth_user_add' %}" class="dash-action-card">
+        <span class="dash-action-icon" style="background:#FEF2F2; color:#DC2626;">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zM4 19.235v-.11a6.375 6.375 0 0112.75 0v.109A12.318 12.318 0 0110.374 21c-2.331 0-4.512-.645-6.374-1.766z"/></svg>
+        </span>
+        <span class="dash-action-label">Add User</span>
+      </a>
+
+    </div>
+  </div>
+
+  <div class="dash-cols">
+
+    <!-- Recently Added Books -->
+    <div class="dash-panel">
+      <div class="dash-panel-header">
+        <h3 class="dash-panel-title">Recently Added Books</h3>
+        <a href="{% url 'admin:library_book_changelist' %}" class="dash-panel-link">View all →</a>
+      </div>
+      {% if recent_books %}
+      <table class="dash-table">
+        <thead>
+          <tr>
+            <th>Title</th>
+            <th>Author</th>
+            <th>Copies</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for book in recent_books %}
+          <tr>
+            <td class="dash-table-title">{{ book.title|truncatechars:32 }}</td>
+            <td class="dash-table-muted">{{ book.author.name }}</td>
+            <td>
+              {% if book.is_available %}
+              <span class="dash-badge dash-badge-green">{{ book.available_copies }} left</span>
+              {% else %}
+              <span class="dash-badge dash-badge-red">Out</span>
+              {% endif %}
+            </td>
+            <td><a href="{% url 'admin:library_book_change' book.pk %}" class="dash-table-edit">Edit</a></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <p class="dash-empty">No books added yet. <a href="{% url 'admin:library_book_add' %}">Add the first one →</a></p>
+      {% endif %}
+    </div>
+
+    <!-- Right column -->
+    <div class="dash-right">
+
+      {% if unavailable_books %}
+      <div class="dash-panel dash-panel-alert">
+        <div class="dash-panel-header">
+          <h3 class="dash-panel-title">
+            <svg width="13" height="13" fill="none" stroke="#DC2626" stroke-width="2" viewBox="0 0 24 24" style="display:inline;vertical-align:middle;margin-right:4px;"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/></svg>
+            Out of Stock
+          </h3>
+          <a href="{% url 'admin:library_book_changelist' %}?available_copies__exact=0" class="dash-panel-link">View all →</a>
+        </div>
+        <ul class="dash-alert-list">
+          {% for book in unavailable_books %}
+          <li>
+            <a href="{% url 'admin:library_book_change' book.pk %}">{{ book.title|truncatechars:36 }}</a>
+            <span class="dash-table-muted"> — {{ book.author.name }}</span>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+
+      {% if recent_actions %}
+      <div class="dash-panel">
+        <div class="dash-panel-header">
+          <h3 class="dash-panel-title">Recent Actions</h3>
+        </div>
+        <ul class="dash-recent-list">
+          {% for action in recent_actions %}
+          <li class="dash-recent-item">
+            <span class="dash-recent-flag {% if action.is_addition %}dash-flag-add{% elif action.is_change %}dash-flag-change{% else %}dash-flag-delete{% endif %}">
+              {% if action.is_addition %}
+              <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+              {% elif action.is_change %}
+              <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487z"/></svg>
+              {% else %}
+              <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 12h-15"/></svg>
+              {% endif %}
+            </span>
+            <div class="dash-recent-body">
+              {% if action.get_admin_url %}
+              <a href="{{ action.get_admin_url }}">{{ action.object_repr }}</a>
+              {% else %}
+              <span>{{ action.object_repr }}</span>
+              {% endif %}
+              <span class="dash-recent-meta">{{ action.content_type.name }}</span>
+            </div>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+
+    </div>
+  </div>
+
+</div>
+{% endblock %}

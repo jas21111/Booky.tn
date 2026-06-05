@@ -1,0 +1,193 @@
+{% extends 'base.html' %}
+{% block title %}Booky.tn — Your Intelligent Library{% endblock %}
+
+{% block content %}
+
+<!-- Hero Section -->
+<section class="relative py-28 px-4 overflow-hidden"
+         style="background: linear-gradient(160deg, #ffffff 0%, #F3F2FB 60%, #EAE8F5 100%);">
+
+  <!-- Soft decorative blobs -->
+  <div class="absolute -top-20 -right-20 w-80 h-80 rounded-full pointer-events-none"
+       style="background:radial-gradient(circle, rgba(138,127,194,0.1) 0%, transparent 70%);"></div>
+  <div class="absolute -bottom-16 -left-16 w-72 h-72 rounded-full pointer-events-none"
+       style="background:radial-gradient(circle, rgba(77,71,168,0.08) 0%, transparent 70%);"></div>
+
+  <!-- Corner decorations -->
+  <div class="absolute top-8 left-8 w-14 h-14 border-l border-t pointer-events-none"
+       style="border-color: rgba(77,71,168,0.15);"></div>
+  <div class="absolute top-8 right-8 w-14 h-14 border-r border-t pointer-events-none"
+       style="border-color: rgba(77,71,168,0.15);"></div>
+  <div class="absolute bottom-8 left-8 w-14 h-14 border-l border-b pointer-events-none"
+       style="border-color: rgba(77,71,168,0.15);"></div>
+  <div class="absolute bottom-8 right-8 w-14 h-14 border-r border-b pointer-events-none"
+       style="border-color: rgba(77,71,168,0.15);"></div>
+
+  <div class="max-w-4xl mx-auto text-center relative z-10">
+    <p class="text-xs uppercase mb-8 font-medium tracking-widest text-accent"
+       style="letter-spacing:0.28em;">Your Sanctuary of Words</p>
+
+    <h1 class="font-serif font-normal leading-none mb-2 text-ink"
+        style="font-size:clamp(2.8rem,8vw,5.5rem); letter-spacing:-0.01em;">
+      Your Intelligent
+    </h1>
+    <h1 class="font-serif font-normal italic text-primary mb-10"
+        style="font-size:clamp(2.8rem,8vw,5.5rem); letter-spacing:-0.01em;">
+      Library
+    </h1>
+
+    <hr class="divider-line mx-auto mb-10" style="max-width:90px;">
+
+    <p class="text-sm max-w-lg mx-auto mb-12 leading-8 font-light text-ink-soft">
+      Discover books, receive personalized recommendations, and converse with our AI literary guide to find your perfect next read.
+    </p>
+
+    <div class="flex flex-col sm:flex-row gap-4 justify-center">
+      <a href="{% url 'library:book_list' %}"
+         class="px-10 py-3 text-xs uppercase font-medium tracking-widest border border-primary text-primary hover:bg-primary hover:text-white transition-all"
+         style="border-radius:5px; letter-spacing:0.13em;">
+        Browse Collection
+      </a>
+      <a href="{% url 'chat:chat' %}"
+         class="px-10 py-3 text-xs uppercase font-semibold tracking-widest hover:opacity-90 transition-opacity"
+         style="background:#4D47A8; color:#fff; border-radius:5px; letter-spacing:0.13em;">
+        Speak with the Librarian
+      </a>
+    </div>
+
+    <!-- Stats -->
+    <div class="flex justify-center gap-12 mt-20 pt-10 border-t border-surface-border">
+      <div>
+        <div class="font-serif text-4xl font-medium text-primary">{{ total_books }}</div>
+        <div class="text-xs uppercase mt-2 tracking-widest font-medium text-ink-muted"
+             style="letter-spacing:0.14em;">Volumes</div>
+      </div>
+      <div class="px-12 border-l border-r border-surface-border">
+        <div class="font-serif text-4xl font-medium text-primary">{{ categories|length }}</div>
+        <div class="text-xs uppercase mt-2 tracking-widest font-medium text-ink-muted"
+             style="letter-spacing:0.14em;">Genres</div>
+      </div>
+      <div>
+        <div class="font-serif text-4xl font-medium text-primary">{{ total_available }}</div>
+        <div class="text-xs uppercase mt-2 tracking-widest font-medium text-ink-muted"
+             style="letter-spacing:0.14em;">Available</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Search Bar -->
+<section class="max-w-3xl mx-auto -mt-7 px-4 relative z-20">
+  <form action="{% url 'library:book_list' %}" method="get"
+        class="flex gap-0 overflow-hidden"
+        style="border:1px solid #E0DFF0; border-radius:6px; background:#fff; box-shadow:0 8px 32px rgba(77,71,168,0.1);">
+    <input type="text" name="q" placeholder="Search books, authors, topics…"
+           class="flex-1 px-6 py-4 outline-none text-sm bg-transparent text-ink placeholder-ink-muted"/>
+    <button type="submit"
+            class="px-8 py-4 text-xs uppercase font-semibold tracking-widest shrink-0 hover:opacity-90 transition-opacity"
+            style="background:#4D47A8; color:#fff; border-radius:0 5px 5px 0; letter-spacing:0.12em;">
+      Search
+    </button>
+  </form>
+</section>
+
+<!-- Categories -->
+<section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-20">
+  <div class="text-center mb-10">
+    <h2 class="font-serif text-3xl font-normal text-ink mb-3">Browse by Genre</h2>
+    <hr class="divider-line mx-auto" style="max-width:70px; margin:0 auto;">
+  </div>
+  <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+    {% for category in categories %}
+    <a href="{% url 'library:book_list' %}?category={{ category.id }}"
+       class="book-card bg-white border border-surface-border p-5 flex flex-col items-center text-center gap-2 transition-all hover:border-primary hover:shadow-md"
+       style="border-radius:8px;">
+      <span class="text-3xl">{{ category.icon }}</span>
+      <span class="font-serif font-medium text-ink text-sm">{{ category.name }}</span>
+      <span class="text-xs text-ink-muted font-light">{{ category.books.count }} books</span>
+    </a>
+    {% endfor %}
+  </div>
+</section>
+
+<!-- Featured Books -->
+<section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-20 mb-8">
+  <div class="flex justify-between items-end mb-10">
+    <div>
+      <h2 class="font-serif text-3xl font-normal text-ink">Featured Books</h2>
+      <hr class="divider-line mt-2" style="max-width:55px; margin-top:0.5rem;">
+    </div>
+    <a href="{% url 'library:book_list' %}"
+       class="text-primary text-xs uppercase tracking-widest font-medium hover:text-primary-dark transition-colors"
+       style="letter-spacing:0.12em;">View All →</a>
+  </div>
+
+  <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
+    {% for book in featured_books %}
+    <a href="{% url 'library:book_detail' book.pk %}"
+       class="book-card bg-white border border-surface-border overflow-hidden block"
+       style="border-radius:8px;">
+      <div class="h-44 flex items-center justify-center" style="background:#ECEAF5;">
+        {% if book.cover_image %}
+        <img src="{{ book.cover_image.url }}" alt="{{ book.title }}"
+             class="w-24 h-36 object-cover rounded shadow-md"/>
+        {% else %}
+        <div class="w-24 h-36 relative rounded shadow-md overflow-hidden"
+             style="background:linear-gradient(145deg, {{ book.cover_color }}, {{ book.cover_color }}bb);">
+          <div class="absolute inset-y-0 left-0 w-2"
+               style="background:linear-gradient(to right,rgba(255,255,255,0.22),transparent);"></div>
+          <div class="absolute bottom-0 left-0 right-0 px-2 pb-2 pt-6"
+               style="background:linear-gradient(to top,rgba(0,0,0,0.5),transparent);">
+            <span class="text-white text-xs font-medium text-center leading-tight block"
+                  style="font-family:'Playfair Display',serif;">{{ book.title|truncatechars:28 }}</span>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+      <div class="p-4">
+        <h3 class="font-serif font-medium text-ink text-sm leading-tight mb-1 truncate">{{ book.title }}</h3>
+        <p class="text-ink-muted text-xs mb-3 italic font-light">{{ book.author.name }}</p>
+        <div class="flex items-center justify-between">
+          <span class="text-xs text-accent font-medium">★ {{ book.rating }}</span>
+          {% if book.is_available %}
+          <span class="text-xs px-2 py-0.5 font-medium"
+                style="background:#EEF7EE; color:#2D6A2D; border-radius:4px;">Available</span>
+          {% else %}
+          <span class="text-xs px-2 py-0.5"
+                style="background:#FEF0F0; color:#A03030; border-radius:4px;">Borrowed</span>
+          {% endif %}
+        </div>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+</section>
+
+<!-- AI Assistant CTA -->
+<section class="py-20 px-4 mt-12"
+         style="background:#F3F2F8; border-top:1px solid #E0DFF0; border-bottom:1px solid #E0DFF0;">
+  <div class="max-w-2xl mx-auto text-center">
+    <p class="text-xs uppercase mb-6 font-semibold tracking-widest text-accent"
+       style="letter-spacing:0.2em;">AI Literary Guide</p>
+    <h2 class="font-serif text-4xl font-normal text-ink mb-4">Ask Our AI Librarian</h2>
+    <hr class="divider-line mx-auto mb-8" style="max-width:70px; margin:0 auto 2rem;">
+    <p class="text-ink-soft text-sm leading-8 mb-10 font-light">
+      Not sure what to read next? Our AI assistant knows the entire catalog and can recommend the perfect book for your mood, interests, or any topic.
+    </p>
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-10">
+      <div class="bg-white px-4 py-4 border border-surface-border text-xs text-ink-soft leading-relaxed italic font-light"
+           style="border-radius:6px;">"Recommend a mystery for my vacation"</div>
+      <div class="bg-white px-4 py-4 border border-surface-border text-xs text-ink-soft leading-relaxed italic font-light"
+           style="border-radius:6px;">"What science books do you have?"</div>
+      <div class="bg-white px-4 py-4 border border-surface-border text-xs text-ink-soft leading-relaxed italic font-light"
+           style="border-radius:6px;">"I loved 1984, what's similar?"</div>
+    </div>
+    <a href="{% url 'chat:chat' %}"
+       class="inline-flex items-center gap-3 px-10 py-4 text-xs uppercase font-semibold tracking-widest hover:opacity-90 transition-opacity"
+       style="background:#4D47A8; color:#fff; border-radius:5px; letter-spacing:0.13em;">
+      Start Chatting with Booky.tn AI
+    </a>
+  </div>
+</section>
+
+{% endblock %}

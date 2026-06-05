@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block title %}Categories — Booky.tn{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+
+  <div class="text-center mb-14">
+    <h1 class="font-serif text-5xl font-normal text-ink mb-3">Browse Genres</h1>
+    <hr class="divider-line mx-auto mb-4" style="max-width:70px; margin:0.5rem auto 1rem;">
+    <p class="text-ink-soft text-sm italic font-light">
+      Explore our collection organised by genre and subject
+    </p>
+  </div>
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
+    {% for category in categories %}
+    <a href="{% url 'library:book_list' %}?category={{ category.id }}"
+       class="book-card bg-white border border-surface-border p-7 flex gap-5 items-start transition-all hover:border-primary hover:shadow-md"
+       style="border-radius:8px;">
+      <div class="text-4xl shrink-0">{{ category.icon }}</div>
+      <div>
+        <h2 class="font-serif text-xl font-medium text-ink mb-1">{{ category.name }}</h2>
+        {% if category.description %}
+        <p class="text-ink-soft text-sm mb-3 leading-relaxed font-light">{{ category.description }}</p>
+        {% endif %}
+        <span class="text-xs uppercase tracking-widest font-semibold text-primary"
+              style="letter-spacing:0.12em;">
+          {{ category.books.count }} volume{{ category.books.count|pluralize }} →
+        </span>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+
+</div>
+{% endblock %}
